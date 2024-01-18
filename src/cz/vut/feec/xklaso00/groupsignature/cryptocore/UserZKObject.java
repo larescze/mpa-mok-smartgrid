@@ -4,22 +4,23 @@ import com.herumi.mcl.G2;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+
 //object sent from the user to the manager with his ZKuser and E2
 public class UserZKObject implements Serializable {
     private BigInteger[] Zets;
     private BigInteger e2;
     private BigInteger c2Goth;
-    private  BigInteger eClientHash;
+    private BigInteger eClientHash;
     private byte[] clientPubKey;
     private BigInteger clientID;
 
-    public UserZKObject(BigInteger[] zets, BigInteger e2, BigInteger c2Goth, BigInteger eClientHash, byte[] clientPubKey,BigInteger clientID) {
+    public UserZKObject(BigInteger[] zets, BigInteger e2, BigInteger c2Goth, BigInteger eClientHash, byte[] clientPubKey, BigInteger clientID) {
         Zets = zets;
         this.e2 = e2;
         this.c2Goth = c2Goth;
         this.eClientHash = eClientHash;
         this.clientPubKey = clientPubKey;
-        this.clientID=clientID;
+        this.clientID = clientID;
     }
 
     public BigInteger getClientID() {
@@ -44,7 +45,7 @@ public class UserZKObject implements Serializable {
 
     public G2 getClientPubKey() {
 
-        G2 pub=new G2();
+        G2 pub = new G2();
         pub.deserialize(clientPubKey);
         return pub;
     }

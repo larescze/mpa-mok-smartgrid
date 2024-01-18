@@ -19,11 +19,10 @@ public class Client {
     private UserZKObject userZK;
     private G1 signKey;
 
-    public Client(ServerTwoPartyObject tpo) {
+    public Client() {
         SecureRandom random = new SecureRandom();
         n = new BigInteger("2523648240000001BA344D8000000007FF9F800000000010A10000000000000D", 16);
         clientID = new BigInteger(16, random);
-        groupID = tpo.getGroupID();
 
         clientPrivateKey = new BigInteger(254, random);
         clientPrivateKey = clientPrivateKey.mod(GroupSignatureFunctions.genNinBigInt());
@@ -32,9 +31,6 @@ public class Client {
         Mcl.mul(clientPublicKey, WeakBB.getG2(), userKey);
 
         r1 = NIZKPKFunctions.getRandom(n.bitLength(), n);
-
-        boolean isIssuerZKValid = NIZKPKFunctions.checkIssuerZK(tpo.getPaillierPublicKey(), tpo.getZKs(), tpo.getE1(), tpo.getcGoth(), tpo.geteHash());
-        userZK = NIZKPKFunctions.computeE2AndUserZK(r1, n, clientPrivateKey, tpo.getPaillierPublicKey(), tpo.getE1(), clientPublicKey.serialize(), clientID);
     }
 
     public BigInteger getN() {
@@ -49,6 +45,19 @@ public class Client {
         return userKey;
     }
 
+    public boolean setUserZk(ServerTwoPartyObject tpo) {
+        boolean isIssuerZKValid = NIZKPKFunctions.checkIssuerZK(tpo.getPaillierPublicKey(), tpo.getZKs(), tpo.getE1(), tpo.getcGoth(), tpo.geteHash());
+
+        if (!isIssuerZKValid) {
+            return false;
+        }
+
+        groupID = tpo.getGroupID();
+        userZK = NIZKPKFunctions.computeE2AndUserZK(r1, n, clientPrivateKey, tpo.getPaillierPublicKey(), tpo.getE1(), clientPublicKey.serialize(), clientID);
+
+        return true;
+    }
+
     public UserZKObject getUserZK() {
         return userZK;
     }
@@ -59,5 +68,12 @@ public class Client {
 
     public G1 getSignKey() {
         return signKey;
+    }
+
+    public SignatureProof signMessage(String m) {
+        BigInteger hashBig = new BigInteger(m.getBytes());
+        Fr msg = new Fr(hashBig.toString(10));
+
+        return GroupSignatureFunctions.computeGroupSignature(msg, n, signKey, userKey, groupID);
     }
 }
