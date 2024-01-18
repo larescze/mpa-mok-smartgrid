@@ -1,4 +1,4 @@
-package cz.vut.feec.datel;
+package cz.vut.feec.smartmetering;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

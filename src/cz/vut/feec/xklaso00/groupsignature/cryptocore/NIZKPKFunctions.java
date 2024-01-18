@@ -280,7 +280,6 @@ public class NIZKPKFunctions {
         BigInteger TWO = new BigInteger("2");
         BigInteger bar = TWO.pow(4096);
 
-
         BigInteger r2 = NIZKPKFunctions.getRandom(kquec.bitLength(), kquec);
         BigInteger r3 = NIZKPKFunctions.getRandom(bar.bitLength(), bar);
         BigInteger e2 = NIZKPKFunctions.computeE2(r1, r2, r3, n, clientPrivateECKey, publicKey, e1);
@@ -391,20 +390,19 @@ public class NIZKPKFunctions {
     //function for check computation of ZKuser, to hash his values
     public static BigInteger hashCsClient(BigInteger c1, BigInteger c2, BigInteger c3, byte[] c4) {
         try {
-            /*System.out.println("c1 "+ Instructions.bytesToHex(c1.toByteArray()));
-            System.out.println("c2 "+Instructions.bytesToHex(c2.toByteArray()));
-            System.out.println("c3 "+Instructions.bytesToHex(c3.toByteArray()));
-            System.out.println("c4 "+Instructions.bytesToHex(c4));*/
             MessageDigest hashing = MessageDigest.getInstance("SHA-256");
+
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(c1.toByteArray());
             outputStream.write(c2.toByteArray());
             outputStream.write(c3.toByteArray());
             outputStream.write(c4);
+
             byte[] chained = outputStream.toByteArray();
             hashing.update(chained);
             byte[] hash = hashing.digest();
             BigInteger hashBig = new BigInteger(hash);
+
             return hashBig;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -423,13 +421,9 @@ public class NIZKPKFunctions {
 
         BigInteger nHalf = bd.toBigInteger();
 
-        //e2= e1.divide(publicKey.getH().divide(BigInteger.TWO));
-        //BigInteger hton2= h.modPow(nHalf,publicKey.getNn());
         BigInteger hton2 = myModPow(h, nHalf, publicKey.getNn());
         hton2 = hton2.modInverse(publicKey.getNn());
         e2 = e1.multiply(hton2);
-        //e2=e1.divide(hton2);
-
         e2 = e2.modPow(r1, publicKey.getNn());
 
 
@@ -438,9 +432,7 @@ public class NIZKPKFunctions {
         BigInteger r2qec = r2.multiply(qec);
         exponent = exponent.add(skr1);
         exponent = exponent.add(r2qec);
-        //BigInteger hToExp= h.modPow(exponent,publicKey.getNn());
         BigInteger hToExp = myModPow(h, exponent, publicKey.getNn());
-        //BigInteger gToR3=publicKey.getG().modPow(r3,publicKey.getNn());
         BigInteger gToR3 = myModPow(publicKey.getG(), r3, publicKey.getNn());
 
         e2 = e2.multiply(hToExp);
@@ -454,9 +446,8 @@ public class NIZKPKFunctions {
 
     public static BigInteger computeX(BigInteger e2, PaillierPrivateKey privateKey, BigInteger qec) {
         BigInteger dec;
-        //dec=e2.modPow(privateKey.getPhi(),privateKey.getNn());
-        dec = myModPow(e2, privateKey.getPhi(), privateKey.getNn());
 
+        dec = myModPow(e2, privateKey.getPhi(), privateKey.getNn());
         dec = dec.subtract(BigInteger.ONE);
         dec = dec.divide(privateKey.getN());
         dec = dec.mod(privateKey.getNn());
@@ -465,17 +456,14 @@ public class NIZKPKFunctions {
         dec = dec.multiply(phiInv);
         dec = dec.mod(privateKey.getN());
 
-
         BigDecimal bd = new BigDecimal(privateKey.getN());
         bd = bd.divide(new BigDecimal(2), RoundingMode.FLOOR);
 
         BigInteger nHalf = bd.toBigInteger();
 
-
         dec = dec.subtract(nHalf);
         dec = dec.mod(privateKey.getN());
         dec = dec.mod(qec);
-
 
         return dec;
     }
@@ -483,22 +471,23 @@ public class NIZKPKFunctions {
     public static BigInteger generateRandomPrime(int bitSize) {
         Random rng = new SecureRandom();
         BigInteger p;
-        if (!useGMP) p = BigInteger.probablePrime(bitSize, rng);
-        else {
+
+        if (!useGMP) {
+            p = BigInteger.probablePrime(bitSize, rng);
+        } else {
             p = new BigInteger(bitSize, rng);
             String resFromC = prime(p.toString(10));
             p = new BigInteger(resFromC, 10);
 
         }
+
         return p;
     }
 
     //function that can switch between GMP and BigInt
     public static BigInteger myModPow(BigInteger num, BigInteger exponent, BigInteger modulus) {
-
         if (useGMP == false) {
-            BigInteger result = num.modPow(exponent, modulus);
-            return result;
+            return num.modPow(exponent, modulus);
         } else {
             String resultString = modPowC(num.toString(10), exponent.toString(10), modulus.toString(10));
 
@@ -512,10 +501,12 @@ public class NIZKPKFunctions {
         try {
             prime("210");
             System.out.println("GMP test performed successfully");
+
             return 0;
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("GMP bindings do not work");
+
             return -1;
         }
     }

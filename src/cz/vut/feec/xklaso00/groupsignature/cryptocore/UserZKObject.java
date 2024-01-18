@@ -44,9 +44,9 @@ public class UserZKObject implements Serializable {
     }
 
     public G2 getClientPubKey() {
-
         G2 pub = new G2();
         pub.deserialize(clientPubKey);
+
         return pub;
     }
 }

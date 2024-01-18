@@ -36,6 +36,4 @@ public class PaillierPrivateKey {
     public BigInteger getPhi() {
         return phi;
     }
-
-
 }

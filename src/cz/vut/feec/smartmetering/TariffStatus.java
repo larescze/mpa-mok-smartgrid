@@ -1,4 +1,4 @@
-package cz.vut.feec.datel;
+package cz.vut.feec.smartmetering;
 
 public enum TariffStatus {
 

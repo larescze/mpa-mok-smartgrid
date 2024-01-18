@@ -1,4 +1,4 @@
-package cz.vut.feec.datel;
+package cz.vut.feec.smartmetering;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -116,7 +116,7 @@ public class GenerateProfile {
         long beforeMidnightConsumption = getConsumptionAtPoint(entry - 1, settings);
         previousSumConsumption = beforeMidnightConsumption + lastRandom;
 
-        //Podíl hodnot před půlnocí
+        //Proportion of values before midnight
         var split = splitMidnightConsumption(beforeMidnightConsumption, settings);
         sumNT = split[0];
         sumVT = split[1] + lastRandom;
@@ -153,7 +153,6 @@ public class GenerateProfile {
                     canGenerate = true;
                     genEntry++;
                 }
-
             }
 
             //Use value only if it is between start and end
@@ -184,13 +183,10 @@ public class GenerateProfile {
 
                         int p1, p2, p3; //spotreba na fazich
 
-
                         pf1 = (0.0 + getRandom(random, 65, 99)) / 100;
                         pf2 = (0.0 + getRandom(random, 65, 99)) / 100;
                         pf3 = (0.0 + getRandom(random, 65, 99)) / 100;
 
-
-                        // TODO: 20.11.2023 Vyřešit max podíl, pokud je spotřeba moc vysoká
                         double r1 = (0.0 + getRandom(random, 10, 40)) / 100;
                         double r2 = (0.0 + getRandom(random, 10, 40)) / 100;
                         double r3 = 1.0 - r1 - r2;

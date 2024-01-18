@@ -8,7 +8,6 @@ import java.security.MessageDigest;
 import java.util.Random;
 
 public class GroupSignatureFunctions {
-    //signing ran on mobile phone
     public static SignatureProof computeGroupSignature(Fr msg, BigInteger n, G1 signKey, Fr UserKey, BigInteger groupID) {
         Fr rand = getRandomFr(n);
         G1 GtoR = getG1();
@@ -18,7 +17,7 @@ public class GroupSignatureFunctions {
 
         Fr minusKey = new Fr();
         Mcl.mul(minusKey, UserKey, new Fr(-1));
-        //Log.i(TAG,"minus key "+minusKey.toString());
+
         G1 SiDash = new G1();
         Mcl.mul(SiDash, SiAph, minusKey);
 
@@ -53,23 +52,27 @@ public class GroupSignatureFunctions {
         MessageDigest hashing;
         try {
             hashing = MessageDigest.getInstance("SHA-256");
+
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(GtoR.serialize());
             outputStream.write(SiAph.serialize());
             outputStream.write(SiDash.serialize());
             outputStream.write(t.serialize());
             outputStream.write(msg.serialize());
+
             byte[] chained = outputStream.toByteArray();
             hashing.update(chained);
             byte[] hash = hashing.digest();
             BigInteger hashBig = new BigInteger(hash);
             hashBig = hashBig.mod(n);
             Fr hashFrCut = new Fr(hashBig.toString(10));
+
             return hashFrCut;
 
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
         return null;
     }
 
@@ -77,11 +80,12 @@ public class GroupSignatureFunctions {
     public static Fr getRandomFr(BigInteger n) {
         Fr fr = new Fr();
         BigInteger rand;
+
         do {
             rand = new BigInteger(254, new Random());
         } while (rand.compareTo(n) >= 0);
         fr.setStr(rand.toString(), 10);
-        //Log.i(TAG,"FR TO STRING "+fr.toString());
+
         return fr;
     }
 
@@ -94,8 +98,6 @@ public class GroupSignatureFunctions {
         G1 SiG = new G1();
         Mcl.add(SiG, sp.getSiDash(), sp.getGToR());
         Mcl.pairing(pair1, SiG, getG2());
-        //G2 PK = new G2();
-        //Mcl.mul(PK,WeakBB.getG2(),ManKey);
         GT pair2 = new GT();
         Mcl.pairing(pair2, sp.getSiAph(), groupPublicKey);
 
@@ -103,8 +105,7 @@ public class GroupSignatureFunctions {
         if (!pair1.equals(pair2)) {
             return false;
         }
-        //end of pairing check
-        //checking of t -> checking of hash
+
         G1 t2 = new G1();
         G1 add1 = new G1();
         Mcl.add(add1, sp.getSiDash(), sp.getGToR());
@@ -118,20 +119,21 @@ public class GroupSignatureFunctions {
         Mcl.add(t2, add1, SiToSSki);
         Mcl.add(t2, t2, gToSr);
         Fr e2 = createEHash(msg, sp.getGToR(), sp.getSiAph(), sp.getSiDash(), t2, genNinBigInt());
-        
-        if (sp.getE().equals(e2)) return true;
-        else return false;
 
+        if (sp.getE().equals(e2)) {
+            return true;
+        }
+
+        return false;
     }
 
     //function to check revocation and opening, it checks the pairing used in it and returns 0 if the pairings equal and -1 if not
     public static int checkSignatureWithPK(G2 PKiInv, G1 SiAph, G1 SiDash) {
-        //long tt=System.nanoTime();
         GT pair1 = new GT();
         GT pair2 = new GT();
         Mcl.pairing(pair1, SiAph, PKiInv);
         Mcl.pairing(pair2, SiDash, getG2());
-        //System.out.println("ONE check takes "+(System.nanoTime()-tt)/1000+" microS");
+
         if (pair1.equals(pair2)) {
             //System.out.println("it is the user");
             return 0;
@@ -147,10 +149,6 @@ public class GroupSignatureFunctions {
 
     //a function that returns the G2 generator of the curve, as the MCL does not have function for that
     public static G2 getG2() {
-        /*Fp fp1= new Fp("12723517038133731887338407189719511622662176727675373276651903807414909099441",10);
-        Fp fp2=new Fp("4168783608814932154536427934509895782246573715297911553964171371032945126671",10);
-        Fp fp3= new Fp("13891744915211034074451795021214165905772212241412891944830863846330766296736",10);
-        Fp fp4= new Fp("7937318970632701341203597196594272556916396164729705624521405069090520231616",10);*/
         Fp fp1 = new Fp("061a10bb519eb62feb8d8c7e8c61edb6a4648bbb4898bf0d91ee4224c803fb2b", 16);
         Fp fp2 = new Fp("0516aaf9ba737833310aa78c5982aa5b1f4d746bae3784b70d8c34c1e7d54cf3", 16);
         Fp fp3 = new Fp("021897a06baf93439a90e096698c822329bd0ae6bdbe09bd19f0e07891cd2b9a", 16);

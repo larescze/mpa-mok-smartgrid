@@ -31,36 +31,42 @@ public class SignatureProof implements Serializable {
     public Fr getE() {
         Fr toRet = new Fr();
         toRet.deserialize(eBytes);
+
         return toRet;
     }
 
     public Fr getSr() {
         Fr toRet = new Fr();
         toRet.deserialize(SrBytes);
+
         return toRet;
     }
 
     public Fr getSSki() {
         Fr toRet = new Fr();
         toRet.deserialize(SSKiBytes);
+
         return toRet;
     }
 
     public G1 getGToR() {
         G1 toRet = new G1();
         toRet.deserialize(gToRBytes);
+
         return toRet;
     }
 
     public G1 getSiAph() {
         G1 toRet = new G1();
         toRet.deserialize(SiAphBytes);
+
         return toRet;
     }
 
     public G1 getSiDash() {
         G1 toRet = new G1();
         toRet.deserialize(SiDashBytes);
+
         return toRet;
     }
 }
