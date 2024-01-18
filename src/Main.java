@@ -4,11 +4,13 @@
 import com.herumi.mcl.Fr;
 import com.herumi.mcl.G1;
 import com.herumi.mcl.Mcl;
+import cz.vut.feec.lazarov.smartgrid.SmartGrid;
 import cz.vut.feec.lazarov.smartgrid.HomeEnergyManagementSystem;
+import cz.vut.feec.lazarov.smartgrid.SmartMeter;
+import cz.vut.feec.lazarov.smartgrid.Trader;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.*;
 
 import java.math.BigInteger;
-import java.util.UUID;
 
 public class Main {
     static {
@@ -28,30 +30,25 @@ public class Main {
     public static void main(String[] args) {
         Mcl.SystemInit(Mcl.BN254);
 
-//        GroupManager groupManager = new GroupManager();
-//        ServerTwoPartyObject twoPartyObject = groupManager.getTwoPartyObject();
-//
-//        HomeEnergyManagementSystem hems1 = new HomeEnergyManagementSystem("HEMS1");
-//        hems1.setClient(twoPartyObject);
-//        Client s1 = hems1.getClient();
-//
-//        boolean proof = groupManager.checkPKUser(s1.getUserZK());
-//
-//        groupManager.saveClientKey(s1.getUserZK().getClientPubKey());
-//
-//        G1 signKeyRand = groupManager.computeSigningKeyRand(s1.getUserZK());
-//        s1.computeKeyFromManager(signKeyRand);
-//
-//        String m = "test";
-//        BigInteger hashBig = new BigInteger(m.getBytes());
-//        Fr msg = new Fr(hashBig.toString(10));
-//
-//        SignatureProof sp = GroupSignatureFunctions.computeGroupSignature(msg, s1.getN(), s1.getSignKey(), s1.getUserKey(), s1.getGroupID());
-//
-//        boolean checkSign = GroupSignatureFunctions.checkProof(sp, msg, groupManager.getManagerPublicKey());
-//        System.out.println(checkSign);
-//
-//        UUID clietntUUID = groupManager.getClientUUID(sp);
-//        System.out.println(clietntUUID);
+        HomeEnergyManagementSystem hems1 = new HomeEnergyManagementSystem("HEMS1");
+
+        Trader t1 = new Trader("Trader1");
+        ServerTwoPartyObject twoPartyObject = t1.getTwoPartyObject();
+
+        hems1.agreeTariff(twoPartyObject);
+        G1 signKey = t1.agreeTariff(hems1.getUserZK());
+        hems1.setSignKey(signKey);
+
+        SmartMeter sm1 = new SmartMeter(1524, "manufacturer1");
+        hems1.connectSmartMeter(sm1, hems1.getClient());
+
+        long consumption = sm1.getConsumption();
+        SignatureProof sp = sm1.signConsumption(consumption);
+
+        SmartGrid sg1 = new SmartGrid("SmartGrid1");
+        sg1.aggregateData(sp, consumption, t1.getPublicKey());
+
+        t1.saveClientConsumption(sp, consumption);
+        t1.showClientsConsumption();
     }
 }
