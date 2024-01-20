@@ -1,7 +1,6 @@
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 
-import com.herumi.mcl.Fr;
 import com.herumi.mcl.G1;
 import com.herumi.mcl.Mcl;
 import cz.vut.feec.lazarov.smartgrid.SmartGrid;
@@ -10,7 +9,10 @@ import cz.vut.feec.lazarov.smartgrid.SmartMeter;
 import cz.vut.feec.lazarov.smartgrid.Trader;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.*;
 
-import java.math.BigInteger;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class Main {
     static {
@@ -27,28 +29,31 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Mcl.SystemInit(Mcl.BN254);
 
         HomeEnergyManagementSystem hems1 = new HomeEnergyManagementSystem("HEMS1");
 
-        Trader t1 = new Trader("Trader1");
+        Trader t1 = new Trader("Trader1", 666);
         ServerTwoPartyObject twoPartyObject = t1.getTwoPartyObject();
 
         hems1.agreeTariff(twoPartyObject);
         G1 signKey = t1.agreeTariff(hems1.getUserZK());
         hems1.setSignKey(signKey);
 
-        SmartMeter sm1 = new SmartMeter(1524, "manufacturer1");
+        SmartMeter sm1 = new SmartMeter(1524, "Manufacturer1");
         hems1.connectSmartMeter(sm1, hems1.getClient());
 
         long consumption = sm1.getConsumption();
         SignatureProof sp = sm1.signConsumption(consumption);
 
-        SmartGrid sg1 = new SmartGrid("SmartGrid1");
+        SmartGrid sg1 = new SmartGrid("SmartGrid1", 333);
         sg1.aggregateData(sp, consumption, t1.getPublicKey());
 
         t1.saveClientConsumption(sp, consumption);
         t1.showClientsConsumption();
+
+        sg1.close();
+        t1.close();
     }
 }
