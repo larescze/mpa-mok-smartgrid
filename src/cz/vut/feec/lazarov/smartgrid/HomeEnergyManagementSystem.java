@@ -8,6 +8,10 @@ import cz.vut.feec.xklaso00.groupsignature.cryptocore.ServerTwoPartyObject;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.SignatureProof;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.UserZKObject;
 
+import javax.net.ssl.SSLSocket;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 public class HomeEnergyManagementSystem {
@@ -53,6 +57,33 @@ public class HomeEnergyManagementSystem {
         }
 
         return false;
+    }
+
+    public boolean agreeTariffWithTrader(int port) {
+        try {
+            SecureChannel.EchoClient sender = new SecureChannel.EchoClient("localhost", port, name);
+
+            ServerTwoPartyObject twoPartyObject = (ServerTwoPartyObject) sender.sendAndReceiveData("AgreeTariff");
+
+            this.client = new Client();
+
+            if (client.setUserZk(twoPartyObject)) {
+                sender.sendAndReceiveData(client.getUserZK());
+                Object test = sender.sendAndReceiveData(client.getUserZK());
+                G1 signKey = new G1();
+                signKey.deserialize((byte[]) test);
+                setSignKey(signKey);
+
+                sender.close();
+                return true;
+            }
+
+            sender.close();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public void setSignKey(G1 signKeyRand) {

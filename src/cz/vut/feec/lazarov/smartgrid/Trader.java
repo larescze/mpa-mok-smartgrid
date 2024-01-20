@@ -5,19 +5,71 @@ import com.herumi.mcl.G1;
 import com.herumi.mcl.G2;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.*;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSocket;
+import java.io.BufferedOutputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-public class Trader {
+public class Trader extends SecureChannel.EchoServer {
     private String name;
+    private int port;
     private GroupManager groupManager;
     HashMap<UUID, Long> clientsConsumption;
 
-    public Trader(String name) {
+    private final Thread thread;
+
+    public Trader(String name, int port) throws Exception {
+        super(port, name);
         this.name = name;
+        this.port = port;
         this.groupManager = new GroupManager();
         this.clientsConsumption = new HashMap<>();
+
+        thread = new Thread(this);
+        thread.start();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    @Override
+    protected Object createResponse(Object dataReceived) {
+        Object response = null;
+
+        if (dataReceived instanceof String && dataReceived.equals("AgreeTariff")) {
+            System.out.println("AgreeTariff");
+            response = getTwoPartyObject();
+        } else if (dataReceived instanceof UserZKObject) {
+            System.out.println("UserZKObject");
+            UserZKObject clientZK = (UserZKObject) dataReceived;
+            G1 signKeyRand = agreeTariff(clientZK);
+            response = signKeyRand.serialize();
+        } else if (dataReceived instanceof Map) {
+            System.out.println("SignedData");
+            Map<Long, SignatureProof> signedData = (Map<Long, SignatureProof>) dataReceived;
+            long consumption = signedData.keySet().iterator().next();
+            SignatureProof sp = signedData.get(consumption);
+
+            saveClientConsumption(sp, consumption);
+            response = new String("OK");
+        }
+
+        return response;
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        thread.interrupt();
     }
 
     public G2 getPublicKey() {
@@ -74,3 +126,4 @@ public class Trader {
         return true;
     }
 }
+
