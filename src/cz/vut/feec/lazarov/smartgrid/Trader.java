@@ -5,10 +5,6 @@ import com.herumi.mcl.G1;
 import com.herumi.mcl.G2;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.*;
 
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLSocket;
-import java.io.BufferedOutputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,21 +42,27 @@ public class Trader extends SecureChannel.EchoServer {
         Object response = null;
 
         if (dataReceived instanceof String && dataReceived.equals("AgreeTariff")) {
-            System.out.println("AgreeTariff");
+            System.out.printf("[%s] Received AgreeTariff\n", name);
             response = getTwoPartyObject();
         } else if (dataReceived instanceof UserZKObject) {
-            System.out.println("UserZKObject");
+            System.out.printf("[%s] Received UserZKObject\n", name);
             UserZKObject clientZK = (UserZKObject) dataReceived;
             G1 signKeyRand = agreeTariff(clientZK);
+            System.out.printf("[%s] Sending SignKeyRandObject\n", name);
             response = signKeyRand.serialize();
         } else if (dataReceived instanceof Map) {
-            System.out.println("SignedData");
+            System.out.printf("[%s] Received SignedData", name);
             Map<Long, SignatureProof> signedData = (Map<Long, SignatureProof>) dataReceived;
             long consumption = signedData.keySet().iterator().next();
             SignatureProof sp = signedData.get(consumption);
-
-            saveClientConsumption(sp, consumption);
-            response = new String("OK");
+            System.out.printf("[%s] Checking signature\n", name);
+            if (saveClientConsumption(sp, consumption)) {
+                System.out.printf("[%s] Signature is valid\n", name);
+                System.out.printf("[%s] Saving client consumption\n", name);
+                response = new String("OK");
+            } else {
+                response = new String("Signature is not valid!");
+            }
         }
 
         return response;
@@ -102,6 +104,8 @@ public class Trader extends SecureChannel.EchoServer {
     }
 
     public void showClientsConsumption() {
+        System.out.printf("[%s] clients:\n", name);
+
         for (UUID clientUUID : clientsConsumption.keySet()) {
             System.out.println(clientUUID + ": " + clientsConsumption.get(clientUUID));
         }

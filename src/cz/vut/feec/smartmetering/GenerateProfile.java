@@ -181,7 +181,7 @@ public class GenerateProfile {
                         int q1, q2, q3; //0,01
                         int i1, i2, i3;
 
-                        int p1, p2, p3; //spotreba na fazich
+                        int p1, p2, p3; //Consumption on phases
 
                         pf1 = (0.0 + getRandom(random, 65, 99)) / 100;
                         pf2 = (0.0 + getRandom(random, 65, 99)) / 100;

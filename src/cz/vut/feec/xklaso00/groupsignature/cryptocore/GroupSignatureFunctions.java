@@ -32,13 +32,11 @@ public class GroupSignatureFunctions {
         //end of computation of t
 
         Fr Sr = new Fr();
-
-        //e= getRandomFr(); //this to be modified to hash
         Fr e = createEHash(msg, GtoR, SiAph, SiDash, t, n);
 
         Fr er = new Fr();
         Mcl.mul(er, e, rand);
-        Mcl.sub(Sr, randR, er);//here we compute Sr
+        Mcl.sub(Sr, randR, er); //here we compute Sr
         Fr SSki = new Fr();
         Fr eSki = new Fr();
         Mcl.mul(eSki, e, UserKey);
@@ -47,7 +45,7 @@ public class GroupSignatureFunctions {
         return new SignatureProof(GtoR, SiAph, SiDash, e, Sr, SSki, groupID);
     }
 
-    //function that hashes t and others in the sig proof/check, returns a sha256 hash mod N of the curve
+    //Function that hashes t and others in the sig proof/check, returns a sha256 hash mod N of the curve
     public static Fr createEHash(Fr msg, G1 GtoR, G1 SiAph, G1 SiDash, G1 t, BigInteger n) {
         MessageDigest hashing;
         try {
@@ -76,7 +74,7 @@ public class GroupSignatureFunctions {
         return null;
     }
 
-    //just a function that generates random number in modulus of the curve and returns it as MCLs FR
+    //Function that generates random number in modulus of the curve and returns it as MCLs FR
     public static Fr getRandomFr(BigInteger n) {
         Fr fr = new Fr();
         BigInteger rand;
@@ -89,8 +87,7 @@ public class GroupSignatureFunctions {
         return fr;
     }
 
-    /*check functions for pc, returns true for valid sig, false for not valid sig, does not check revocation, that is to be implemented separately with the use
-    of the checkSignatureWithPK */
+    //Check functions for pc, returns true for valid sig, false for not valid sig, does not check revocation, that is to be implemented separately with the use of the checkSignatureWithPK
     public static boolean checkProof(SignatureProof sp, Fr msg, G2 groupPublicKey) {
         //checking of pairing
         long proofStart = System.nanoTime();
@@ -127,7 +124,7 @@ public class GroupSignatureFunctions {
         return false;
     }
 
-    //function to check revocation and opening, it checks the pairing used in it and returns 0 if the pairings equal and -1 if not
+    //Function to check revocation and opening, it checks the pairing used in it and returns 0 if the pairings equal and -1 if not
     public static int checkSignatureWithPK(G2 PKiInv, G1 SiAph, G1 SiDash) {
         GT pair1 = new GT();
         GT pair2 = new GT();
@@ -135,19 +132,18 @@ public class GroupSignatureFunctions {
         Mcl.pairing(pair2, SiDash, getG2());
 
         if (pair1.equals(pair2)) {
-            //System.out.println("it is the user");
             return 0;
         }
 
         return -1;
     }
 
-    //a function to get the order of the curve in bigInt
+    //Function to get the order of the curve in bigInt
     public static BigInteger genNinBigInt() {
         return new BigInteger("2523648240000001BA344D8000000007FF9F800000000010A10000000000000D", 16);
     }
 
-    //a function that returns the G2 generator of the curve, as the MCL does not have function for that
+    //Function that returns the G2 generator of the curve, as the MCL does not have function for that
     public static G2 getG2() {
         Fp fp1 = new Fp("061a10bb519eb62feb8d8c7e8c61edb6a4648bbb4898bf0d91ee4224c803fb2b", 16);
         Fp fp2 = new Fp("0516aaf9ba737833310aa78c5982aa5b1f4d746bae3784b70d8c34c1e7d54cf3", 16);
@@ -158,7 +154,7 @@ public class GroupSignatureFunctions {
         return gen2;
     }
 
-    //a function that returns the G1 generator of the curve
+    //Function that returns the G1 generator of the curve
     public static G1 getG1() {
         Fp fr1 = new Fp("2523648240000001BA344D80000000086121000000000013A700000000000012", 16);
         Fp fr2 = new Fp("1", 16);

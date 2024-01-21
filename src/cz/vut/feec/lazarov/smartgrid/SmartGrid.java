@@ -6,7 +6,6 @@ import cz.vut.feec.xklaso00.groupsignature.cryptocore.GroupSignatureFunctions;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.SignatureProof;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,17 +61,18 @@ public class SmartGrid extends SecureChannel.EchoServer {
 
         try {
             if (dataReceived instanceof Map) {
-                System.out.println("SignedData");
+                System.out.printf("[%s] Received SignedData\n", name);
                 Map<Long, SignatureProof> signedData = (Map<Long, SignatureProof>) dataReceived;
                 long consumption = signedData.keySet().iterator().next();
                 SignatureProof sp = signedData.get(consumption);
 
+                System.out.printf("[%s] Checking signature\n", name);
                 for (G2 publicKey : traders.keySet()) {
                     if (aggregateData(sp, consumption, publicKey)) {
-                        System.out.println("Consumption: " + consumption);
-                        System.out.println("Total consumption: " + totalConsumption);
+                        System.out.printf("[%s] Consumption: " + consumption + "\n", name);
+                        System.out.printf("[%s] Total consumption: " + totalConsumption + "\n", name);
                         int port = traders.get(publicKey);
-                        System.out.println("Sending data to:" + port);
+                        System.out.printf("[%s] Sending data to: " + port + "\n", name);
                         response = new String("OK");
 
                         SecureChannel.EchoClient sender = new SecureChannel.EchoClient("localhost", port, name);
@@ -81,6 +81,7 @@ public class SmartGrid extends SecureChannel.EchoServer {
                     }
                 }
 
+                System.out.printf("[%s] Signature is not valid\n", name);
                 return new String("Invalid signature!");
             }
         } catch (Exception e) {

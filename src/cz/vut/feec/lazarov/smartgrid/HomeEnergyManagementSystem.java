@@ -1,18 +1,10 @@
 package cz.vut.feec.lazarov.smartgrid;
 
-import com.herumi.mcl.Fr;
-
 import com.herumi.mcl.G1;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.Client;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.ServerTwoPartyObject;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.SignatureProof;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.UserZKObject;
-
-import javax.net.ssl.SSLSocket;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
-import java.math.BigInteger;
 
 public class HomeEnergyManagementSystem {
     private String name;
@@ -62,22 +54,29 @@ public class HomeEnergyManagementSystem {
     public boolean agreeTariffWithTrader(int port) {
         try {
             SecureChannel.EchoClient sender = new SecureChannel.EchoClient("localhost", port, name);
-
+            System.out.printf("[%s] Sending AgreeTariff\n", name);
             ServerTwoPartyObject twoPartyObject = (ServerTwoPartyObject) sender.sendAndReceiveData("AgreeTariff");
+            System.out.printf("[%s] Received ServerTwoPartyObject\n", name);
 
             this.client = new Client();
 
+            System.out.printf("[%s] Checking issuer\n", name);
             if (client.setUserZk(twoPartyObject)) {
+                System.out.printf("[%s] Issuer is valid\n", name);
+                System.out.printf("[%s] Sending SenderObject\n", name);
                 sender.sendAndReceiveData(client.getUserZK());
-                Object test = sender.sendAndReceiveData(client.getUserZK());
-                G1 signKey = new G1();
-                signKey.deserialize((byte[]) test);
-                setSignKey(signKey);
+                System.out.printf("[%s] Received SignKeyRandObject\n", name);
+                Object signKeyRandObject = sender.sendAndReceiveData(client.getUserZK());
+                G1 signKeyRand = new G1();
+                signKeyRand.deserialize((byte[]) signKeyRandObject);
+                System.out.printf("[%s] Computing key from manager\n", name);
+                computeSignKey(signKeyRand);
 
                 sender.close();
                 return true;
             }
 
+            System.out.printf("[%s] Issuer is not valid\n", name);
             sender.close();
             return false;
         } catch (Exception e) {
@@ -86,12 +85,12 @@ public class HomeEnergyManagementSystem {
         }
     }
 
-    public void setSignKey(G1 signKeyRand) {
+    public void computeSignKey(G1 signKeyRand) {
         client.computeKeyFromManager(signKeyRand);
     }
 
     public void cancelTariff() {
-        SignatureProof sp = client.signMessage("test");
+        SignatureProof sp = client.signMessage("CancelTariff");
         client = null;
     }
 }

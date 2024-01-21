@@ -4,24 +4,12 @@ import com.herumi.mcl.Fr;
 import cz.vut.feec.smartmetering.ConsumptionGenerator;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.Client;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.GroupSignatureFunctions;
-import cz.vut.feec.xklaso00.groupsignature.cryptocore.ServerTwoPartyObject;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.SignatureProof;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.Map;
-
-class SignedData {
-    public long consumption;
-    public SignatureProof signatureProof;
-
-    public SignedData(long consumption, SignatureProof signatureProof) {
-        this.consumption = consumption;
-        this.signatureProof = signatureProof;
-    }
-}
 
 public class SmartMeter {
     private int serialNumber;
@@ -70,13 +58,17 @@ public class SmartMeter {
         try {
             SecureChannel.EchoClient sender = new SecureChannel.EchoClient("localhost", port, "SM" + serialNumber);
 
+            System.out.printf("[%s] Measure consumption\n", "SM" + serialNumber);
             long consumption = getConsumption();
+            System.out.printf("[%s] Consumption: %d\n", "SM" + serialNumber, consumption);
+            System.out.printf("[%s] Sign consumption\n", "SM" + serialNumber);
             SignatureProof sp = signConsumption(consumption);
 
-            Map<Long, SignatureProof> signedData = new HashMap<>();
+            HashMap<Long, SignatureProof> signedData = new HashMap<>();
             signedData.put(consumption, sp);
 
-            Object received = sender.sendAndReceiveData(signedData);
+            System.out.printf("[%s] Sending data to: %d\n", "SM" + serialNumber, port);
+            sender.sendAndReceiveData(signedData);
 
             sender.close();
 

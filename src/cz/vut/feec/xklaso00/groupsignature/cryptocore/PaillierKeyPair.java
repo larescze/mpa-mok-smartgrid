@@ -5,13 +5,11 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 public class PaillierKeyPair {
-
     private PaillierPrivateKey paillierPrivateKey;
     private PaillierPublicKey paillierPublicKey;
     private BigInteger q;
     private BigInteger p;
     private BigInteger Mu;
-
     private String TAG = "TimeStampsPaillier";
 
     public PaillierKeyPair(int bitSize) {
@@ -45,7 +43,7 @@ public class PaillierKeyPair {
         paillierPrivateKey = new PaillierPrivateKey(lambda, Mu, n, nn, phi);
     }
 
-    //the setup function pretty much, generates the parameters, this one takes a generated goth group
+    //The setup function pretty much, generates the parameters, this one takes a generated goth group
     public PaillierKeyPair(int bitSize, GothGroup gothGroup) {
         long st = System.nanoTime();
         p = NIZKPKFunctions.generateRandomPrime(bitSize / 2);
@@ -61,8 +59,10 @@ public class PaillierKeyPair {
         BigInteger g = generateG(bitSize, n, phi, nn);
         et = System.nanoTime();
         System.out.println("G generation took " + (et - st2) / 1000000 + " ms");
+
         paillierPublicKey = new PaillierPublicKey(n, g, nn, bitSize, gothGroup.getnGoth(), gothGroup.gethGoth(), gothGroup.getgGoth());
         paillierPrivateKey = new PaillierPrivateKey(lambda, Mu, n, nn, phi);
+
         et = System.nanoTime();
     }
 

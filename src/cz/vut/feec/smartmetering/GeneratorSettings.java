@@ -7,26 +7,17 @@ import java.time.format.DateTimeFormatter;
 
 public class GeneratorSettings {
     private final static DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-
     LocalDate installationDate;
-//    String seed;
-
     int initialConsumption;
     int initialGeneration;
-
     double consumptionFactor;
     double generationFactor;
     int generationHours;
-
     double reactiveLoadFactor;
     double capacityLoadFactor;
-
     int maxCurrent;
-
     boolean threePhases;
-
     int lowTariffHours;
-
     int meterID;
 
     public GeneratorSettings(LocalDate installationDate, int initialConsumption, int initialGeneration, double consumptionFactor, double generationFactor, int generationHours, double reactiveLoadFactor, double capacityLoadFactor, int maxCurrent, boolean threePhases, int lowTariffHours, int meterID) {
@@ -96,7 +87,7 @@ public class GeneratorSettings {
         if (lowTariffHours == 0) {
             return TariffStatus.HIGH;
         }
-        //od 0:15 do h + hodiny NT
+        //From 0:15 to h + hours NT
         LocalTime midnight = LocalTime.of(0, 15);
 
         if ((current.toLocalTime().isAfter(midnight) || current.toLocalTime().equals(midnight)) && current.toLocalTime().isBefore(midnight.plusHours(lowTariffHours))) {

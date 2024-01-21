@@ -7,7 +7,7 @@ import java.security.KeyStore;
 
 public class SecureChannel {
 
-    private static final int delay = 1000; // in millis
+    private static final int delay = 1000; //in millis
     private static final String[] protocols = new String[]{"TLSv1.3"};
     private static final String[] cipher_suites = new String[]{"TLS_AES_128_GCM_SHA256"};
 
@@ -24,8 +24,8 @@ public class SecureChannel {
             System.out.printf("Client received: %s\n", data);
 
             Thread.sleep(delay);
-            client.close();
 
+            client.close();
             server.close();
         }
     }
@@ -62,6 +62,7 @@ public class SecureChannel {
             SSLSocket socket = (SSLSocket) createSSLContext().getSocketFactory().createSocket(host, port);
             socket.setEnabledProtocols(protocols);
             socket.setEnabledCipherSuites(cipher_suites);
+
             return socket;
         }
 
@@ -123,14 +124,14 @@ public class SecureChannel {
 
                     Object dataReceived;
 
-                    // Receive data from client
+                    //Receive data from client
                     while ((dataReceived = inputStream.readObject()) != null) {
                         System.out.printf("[%s] Server received data\n", name);
 
-                        Object dataToSend = createResponse(dataReceived); // Create response
+                        Object dataToSend = createResponse(dataReceived); //Create response
 
                         System.out.printf("[%s] Server sending data to client\n", name);
-                        outputStream.writeObject(dataToSend); // Send data to client
+                        outputStream.writeObject(dataToSend); //Send data to client
                     }
                 } catch (EOFException | SocketException e1) {
                     System.out.printf("[%s] Client disconnected from server\n", name);
@@ -151,6 +152,7 @@ public class SecureChannel {
             SSLServerSocket socket = (SSLServerSocket) createSSLContext().getServerSocketFactory().createServerSocket(port);
             socket.setEnabledProtocols(protocols);
             socket.setEnabledCipherSuites(cipher_suites);
+
             return socket;
         }
     }
@@ -167,6 +169,7 @@ public class SecureChannel {
 
         SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
         return sslContext;
     }
 }

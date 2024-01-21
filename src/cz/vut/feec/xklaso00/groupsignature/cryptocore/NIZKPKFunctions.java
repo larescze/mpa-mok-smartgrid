@@ -17,49 +17,44 @@ import java.util.Random;
 public class NIZKPKFunctions {
     private static boolean useGMP = false;
 
-    //this function computes the E1 and ZK_man, returns the serialized object that can be sent, most of the times are commented now for less clutter
+    //Function computes the E1 and ZK_man, returns the serialized object that can be sent, most of the times are commented now for less clutter
     public static ServerTwoPartyObject computeE1andZKManager(PaillierKeyPair kp, BigInteger serverPrivateECKey, BigInteger groupID) {
         long startE = System.nanoTime();
         BigInteger r = getRandom(kp.getPaillierPrivateKey().getPhi().bitLength(), kp.getPaillierPrivateKey().getPhi());
         BigInteger e1 = computeE1(kp.getPaillierPublicKey(), serverPrivateECKey, r);
-        //System.out.println("E1 took" + (System.nanoTime()-startE)/1000000+" ms");
 
-        //long start=System.nanoTime();
         BigInteger[] cGoth_rDash = computeCGoth(kp, serverPrivateECKey);
-        //System.out.println("c1 took" + (System.nanoTime()-start)/1000000+" ms");
         BigInteger cGoth = cGoth_rDash[0];
         BigInteger r_dash = cGoth_rDash[1];
-        //start=System.nanoTime();
+
         BigInteger[] ZkIssuerE = createZKIssuer(kp, serverPrivateECKey, r, r_dash);
-        //System.out.println("ZK issuer took" + (System.nanoTime()-start)/1000000+" ms");
         BigInteger[] ZkIssuer = Arrays.copyOfRange(ZkIssuerE, 0, ZkIssuerE.length - 1);
         BigInteger eHash = ZkIssuerE[3];
         System.out.println("e1C1ZK took" + (System.nanoTime() - startE) / 1000000 + " ms");
+
         ServerTwoPartyObject par = new ServerTwoPartyObject(kp.getPaillierPublicKey(), e1, ZkIssuer, cGoth, eHash, groupID);
+
         return par;
     }
 
-    //computation of CGoth
+    //Computation of CGoth
     public static BigInteger[] computeCGoth(PaillierKeyPair kp, BigInteger serverPrivateECKey) {
-        //I modified this to be NGoth not PhiNGoth
         BigInteger rDash = NIZKPKFunctions.getRandom(kp.getPaillierPublicKey().getNGoth().bitLength(), kp.getPaillierPublicKey().getNGoth());
-        //changed to use C++
-        //BigInteger cGoth=kp.getPaillierPublicKey().getGGoth().modPow(serverPrivateECKey,kp.getPaillierPublicKey().getNGoth());
-        //BigInteger mid= kp.getPaillierPublicKey().getHGoth().modPow(rDash,kp.getPaillierPublicKey().getNGoth());
         BigInteger cGoth = myModPow(kp.getPaillierPublicKey().getGGoth(), serverPrivateECKey, kp.getPaillierPublicKey().getNGoth());
         BigInteger mid = myModPow(kp.getPaillierPublicKey().getHGoth(), rDash, kp.getPaillierPublicKey().getNGoth());
+
         cGoth = cGoth.multiply(mid);
         cGoth = cGoth.mod(kp.getPaillierPublicKey().getNGoth());
         BigInteger[] cGoth_rDash = new BigInteger[2];
         cGoth_rDash[0] = cGoth;
         cGoth_rDash[1] = rDash;
+
         return cGoth_rDash;
     }
 
-    //generate the ZKman, the parameters are Paillier parameters, serverPrivateKey, r and rDash used in the E1 comp
+    //Generate the ZKman, the parameters are Paillier parameters, serverPrivateKey, r and rDash used in the E1 comp
     public static BigInteger[] createZKIssuer(PaillierKeyPair kp, BigInteger serverPrivateECKey, BigInteger r, BigInteger rDash) {
         PaillierPublicKey pubK = kp.getPaillierPublicKey();
-        //PaillierPrivateKey privK=kp.getPaillierPrivateKey();
 
         BigInteger rho1 = NIZKPKFunctions.getRandom(pubK.getNGoth().bitLength(), pubK.getNGoth());
         BigInteger rho2 = NIZKPKFunctions.getRandom(pubK.getNn().bitLength(), pubK.getNn());
@@ -75,7 +70,6 @@ public class NIZKPKFunctions {
         t2 = t2.mod(pubK.getNGoth());
         BigInteger eHash = hashTs(t1, t2);
 
-        //lets not mod since it wont do anything and it did not work in client
         BigInteger[] ZsAndEHash = new BigInteger[4];
         BigInteger z1 = eHash.multiply(serverPrivateECKey);
         z1 = z1.add(rho1);
@@ -96,17 +90,19 @@ public class NIZKPKFunctions {
         return ZsAndEHash;
     }
 
-    //hash function for manager NIZK
+    //Hash function for manager NIZK
     public static BigInteger hashTs(BigInteger t1, BigInteger t2) {
         try {
             MessageDigest hashing = MessageDigest.getInstance("SHA-256");
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(t1.toByteArray());
             outputStream.write(t2.toByteArray());
+
             byte[] chained = outputStream.toByteArray();
             hashing.update(chained);
             byte[] hash = hashing.digest();
             BigInteger hashBig = new BigInteger(hash);
+
             return hashBig;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -117,22 +113,26 @@ public class NIZKPKFunctions {
     public static BigInteger getRandom(int length, BigInteger n) {
         Random rng = new Random();
         BigInteger r;
+
         do {
             r = new BigInteger(length, rng);
         } while (r.compareTo(n) >= 0);
+
         return r;
     }
 
     public static BigInteger getRandomFromGroup(BigInteger n) {
         Random rng = new Random();
         BigInteger r;
+
         do {
             r = new BigInteger(n.bitLength(), rng);
         } while (r.compareTo(n) >= 0);
+
         return r;
     }
 
-    //compute E1 for manager
+    //Compute E1 for manager
     public static BigInteger computeE1(PaillierPublicKey publicKey, BigInteger sk, BigInteger r) {
         BigInteger e;
 
@@ -143,19 +143,17 @@ public class NIZKPKFunctions {
 
         BigInteger exponent = nHalf;
         exponent = exponent.add(sk);
-        //e=publicKey.getH().modPow(exponent,publicKey.getNn());
         e = myModPow(publicKey.getH(), exponent, publicKey.getNn());
 
-        //BigInteger gr= publicKey.getG().modPow(r,publicKey.getNn());
         BigInteger gr = myModPow(publicKey.getG(), r, publicKey.getNn());
         e = e.multiply(gr);
         e = e.mod(publicKey.getNn());
+
         return e;
     }
 
-    //function to check the user ZK, could probably change it to take the UserZKObject, oh well...
+    //Function to check the user ZK, could probably change it to take the UserZKObject, oh well...
     public static boolean checkPKUser(BigInteger[] Zets, BigInteger e2, BigInteger c2Goth, BigInteger eClientHash, G2 clientPubKey, BigInteger e1, BigInteger n, PaillierKeyPair kp) {
-
         PaillierPublicKey pubK = kp.getPaillierPublicKey();
         BigInteger nn = pubK.getNn();
         BigInteger nGoth = pubK.getNGoth();
@@ -171,7 +169,6 @@ public class NIZKPKFunctions {
         BigInteger zU = Zets[3];
         BigInteger zGoth = Zets[4];
         BigInteger zAph = Zets[5];
-        //Log.i(TAG,"Zs? "+zS.toString());
 
         //c1 comp
         BigInteger c1 = myModPow(alpha, z1, nn);
@@ -219,22 +216,26 @@ public class NIZKPKFunctions {
 
         BigInteger hashCheck = NIZKPKFunctions.hashCsClient(c1, c2, c3, g2Zs.serialize());
 
-        if (hashCheck.equals(eClientHash)) return true;
-        else return false;
+        if (hashCheck.equals(eClientHash)) {
+            return true;
+        }
+
+        return false;
     }
 
-    //a function that deciphers e2 and computes the randomized G1 point, that the user must derandomize with r1
+    //Function that deciphers e2 and computes the randomized G1 point, that the user must derandomize with r1
     public static G1 computeSigningKeyRandomized(BigInteger e2, PaillierKeyPair kp, BigInteger n) {
         BigInteger x = computeX(e2, kp.getPaillierPrivateKey(), n);
         BigInteger xInv = x.modInverse(n);
         Fr xFr = new Fr(xInv.toString(), 10);
+
         G1 pubManager = GroupSignatureFunctions.getG1();
         Mcl.mul(pubManager, pubManager, xFr);
+
         return pubManager;
     }
 
-    //here is the client part of function
-
+    //Here is the client part of function
     public static boolean checkIssuerZK(PaillierPublicKey pubK, BigInteger[] Zs, BigInteger e1, BigInteger c1Goth, BigInteger eHash) {
         BigInteger z1 = Zs[0];
         BigInteger z2 = Zs[1];
@@ -255,7 +256,6 @@ public class NIZKPKFunctions {
         BigInteger t1Check = hz1.multiply(gz2);
         t1Check = t1Check.multiply(frac);
         t1Check = t1Check.mod(nn);
-        //now we have t1'
 
         BigInteger gz1 = myModPow(pubK.getGGoth(), z1, nGoth);
         BigInteger hz3 = myModPow(pubK.getHGoth(), z3, nGoth);
@@ -268,12 +268,14 @@ public class NIZKPKFunctions {
 
         BigInteger checkHash = NIZKPKFunctions.hashTs(t1Check, t2Check);
 
-        if (checkHash.equals(eHash)) return true;
-        else return false;
+        if (checkHash.equals(eHash)) {
+            return true;
+        }
 
+        return false;
     }
 
-    //pass pre-generated r1 to this function (r1= NIZKPKFunctions.getRandom(n.bitLength(),n)) as it will be needed later, so save it somewhere
+    //Pass pre-generated r1 to this function (r1= NIZKPKFunctions.getRandom(n.bitLength(),n)) as it will be needed later, so save it somewhere
     public static UserZKObject computeE2AndUserZK(BigInteger r1, BigInteger n, BigInteger clientPrivateECKey, PaillierPublicKey publicKey, BigInteger e1, byte[] clientPubKey, BigInteger clientID) {
         BigInteger kquec = BigInteger.valueOf(2);
         kquec = kquec.pow(n.bitLength() * 3);
@@ -300,7 +302,7 @@ public class NIZKPKFunctions {
         return c2Goth;
     }
 
-    //returns Zs and E hash, could be modified to return the UserZKObject
+    //Returns Zs and E hash, could be modified to return the UserZKObject
     public static BigInteger[] computeUserZK(PaillierPublicKey pubK, BigInteger e1, BigInteger n, BigInteger c2Goth, BigInteger r1, BigInteger r2, BigInteger r3, BigInteger clientPrivateECKey) {
         BigInteger nGoth = pubK.getNGoth();
         BigInteger nn = pubK.getNn();
@@ -376,10 +378,10 @@ public class NIZKPKFunctions {
         return ZetsAndEHash;
     }
 
-    //function to compute the key by de-randomizing it, we run this in client class with save
+    //Function to compute the key by de-randomizing it, we run this in client class with save
     public static G1 computeKeyFromManager(G1 pubManager, BigInteger r1) {
 
-        //now PubManager is sent to user...
+        //Now PubManager is sent to user...
         Fr r1Fr = new Fr(r1.toString(), 10);
         G1 signKey = new G1();
         Mcl.mul(signKey, pubManager, r1Fr);
@@ -387,7 +389,7 @@ public class NIZKPKFunctions {
         return signKey;
     }
 
-    //function for check computation of ZKuser, to hash his values
+    //Function for check computation of ZKuser, to hash his values
     public static BigInteger hashCsClient(BigInteger c1, BigInteger c2, BigInteger c3, byte[] c4) {
         try {
             MessageDigest hashing = MessageDigest.getInstance("SHA-256");
@@ -413,8 +415,6 @@ public class NIZKPKFunctions {
 
     public static BigInteger computeE2(BigInteger r1, BigInteger r2, BigInteger r3, BigInteger qec, BigInteger sk, PaillierPublicKey publicKey, BigInteger e1) {
         BigInteger e2;
-        e2 = e1;
-        BigInteger n = publicKey.getN();
         BigInteger h = publicKey.getH();
         BigDecimal bd = new BigDecimal(publicKey.getN());
         bd = bd.divide(new BigDecimal(2), RoundingMode.FLOOR);
@@ -425,7 +425,6 @@ public class NIZKPKFunctions {
         hton2 = hton2.modInverse(publicKey.getNn());
         e2 = e1.multiply(hton2);
         e2 = e2.modPow(r1, publicKey.getNn());
-
 
         BigInteger exponent = nHalf;
         BigInteger skr1 = sk.multiply(r1);
@@ -439,7 +438,6 @@ public class NIZKPKFunctions {
         e2 = e2.mod(publicKey.getNn());
         e2 = e2.multiply(gToR3);
         e2 = e2.mod(publicKey.getNn());
-
 
         return e2;
     }
@@ -478,13 +476,11 @@ public class NIZKPKFunctions {
             p = new BigInteger(bitSize, rng);
             String resFromC = prime(p.toString(10));
             p = new BigInteger(resFromC, 10);
-
         }
 
         return p;
     }
 
-    //function that can switch between GMP and BigInt
     public static BigInteger myModPow(BigInteger num, BigInteger exponent, BigInteger modulus) {
         if (useGMP == false) {
             return num.modPow(exponent, modulus);
@@ -493,8 +489,6 @@ public class NIZKPKFunctions {
 
             return new BigInteger(resultString, 10);
         }
-
-
     }
 
     public static int testGMP() {

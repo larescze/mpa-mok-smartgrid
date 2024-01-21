@@ -3,11 +3,9 @@ package cz.vut.feec.xklaso00.groupsignature.cryptocore;
 import com.herumi.mcl.Fr;
 import com.herumi.mcl.G1;
 
-
 import java.io.Serializable;
 import java.math.BigInteger;
 
-//class for sending the signature in Serialized way, we must use Bytes as the MCL vars are not serializable according to this Interface
 public class SignatureProof implements Serializable {
     private byte[] gToRBytes;
     private byte[] SiAphBytes;

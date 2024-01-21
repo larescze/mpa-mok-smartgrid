@@ -27,6 +27,7 @@ public class Client {
         clientPrivateKey = new BigInteger(254, random);
         clientPrivateKey = clientPrivateKey.mod(GroupSignatureFunctions.genNinBigInt());
         clientPublicKey = new G2();
+
         userKey = new Fr(clientPrivateKey.toString(), 10);
         Mcl.mul(clientPublicKey, WeakBB.getG2(), userKey);
 

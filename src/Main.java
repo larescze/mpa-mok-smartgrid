@@ -3,16 +3,12 @@
 
 import com.herumi.mcl.G1;
 import com.herumi.mcl.Mcl;
-import cz.vut.feec.lazarov.smartgrid.SmartGrid;
 import cz.vut.feec.lazarov.smartgrid.HomeEnergyManagementSystem;
+import cz.vut.feec.lazarov.smartgrid.SmartGrid;
 import cz.vut.feec.lazarov.smartgrid.SmartMeter;
 import cz.vut.feec.lazarov.smartgrid.Trader;
-import cz.vut.feec.xklaso00.groupsignature.cryptocore.*;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import cz.vut.feec.xklaso00.groupsignature.cryptocore.ServerTwoPartyObject;
+import cz.vut.feec.xklaso00.groupsignature.cryptocore.SignatureProof;
 
 public class Main {
     static {
@@ -38,8 +34,8 @@ public class Main {
         ServerTwoPartyObject twoPartyObject = t1.getTwoPartyObject();
 
         hems1.agreeTariff(twoPartyObject);
-        G1 signKey = t1.agreeTariff(hems1.getUserZK());
-        hems1.setSignKey(signKey);
+        G1 signKeyRand = t1.agreeTariff(hems1.getUserZK());
+        hems1.computeSignKey(signKeyRand);
 
         SmartMeter sm1 = new SmartMeter(1524, "Manufacturer1");
         hems1.connectSmartMeter(sm1, hems1.getClient());
