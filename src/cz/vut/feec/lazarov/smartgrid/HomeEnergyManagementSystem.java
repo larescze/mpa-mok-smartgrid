@@ -6,6 +6,9 @@ import cz.vut.feec.xklaso00.groupsignature.cryptocore.ServerTwoPartyObject;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.SignatureProof;
 import cz.vut.feec.xklaso00.groupsignature.cryptocore.UserZKObject;
 
+import java.math.BigInteger;
+import java.util.HashMap;
+
 public class HomeEnergyManagementSystem {
     private String name;
     private Client client;
@@ -53,12 +56,13 @@ public class HomeEnergyManagementSystem {
 
     public boolean agreeTariffWithTrader(int port) {
         try {
+            this.client = new Client();
+
             SecureChannel.EchoClient sender = new SecureChannel.EchoClient("localhost", port, name);
             System.out.printf("[%s] Sending AgreeTariff\n", name);
-            ServerTwoPartyObject twoPartyObject = (ServerTwoPartyObject) sender.sendAndReceiveData("AgreeTariff");
+            AgreeTariff agreeTariff = new AgreeTariff(client.getClientID(), name);
+            ServerTwoPartyObject twoPartyObject = (ServerTwoPartyObject) sender.sendAndReceiveData(agreeTariff);
             System.out.printf("[%s] Received ServerTwoPartyObject\n", name);
-
-            this.client = new Client();
 
             System.out.printf("[%s] Checking issuer\n", name);
             if (client.setUserZk(twoPartyObject)) {

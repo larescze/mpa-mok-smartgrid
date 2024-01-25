@@ -17,7 +17,7 @@ public class GroupManager {
     private G2 managerPublicKey;
     PaillierKeyPair kp;
     ServerTwoPartyObject twoPartyObject;
-    HashMap<UUID, G2> clientKeys;
+    HashMap<BigInteger, G2> clientKeys;
 
     public GroupManager() {
         SecureRandom random = new SecureRandom();
@@ -53,21 +53,20 @@ public class GroupManager {
         return twoPartyObject;
     }
 
-    public void saveClientKey(G2 clientPublicKey) {
-        UUID uuid = UUID.randomUUID();
+    public void saveClientKey(BigInteger clientID, G2 clientPublicKey) {
         G2 invPubKey = new G2();
         Mcl.neg(invPubKey, clientPublicKey);
-        clientKeys.put(uuid, invPubKey);
+        clientKeys.put(clientID, invPubKey);
     }
 
-    public void removeClientKey(UUID uuid) {
-        clientKeys.remove(uuid);
+    public void removeClientKey(BigInteger clientID) {
+        clientKeys.remove(clientID);
     }
 
-    public UUID getClientUUID(SignatureProof sp) {
-        for (UUID uuid : clientKeys.keySet()) {
-            if (GroupSignatureFunctions.checkSignatureWithPK(clientKeys.get(uuid), sp.getSiAph(), sp.getSiDash()) == 0) {
-                return uuid;
+    public BigInteger getClientID(SignatureProof sp) {
+        for (BigInteger clientID : clientKeys.keySet()) {
+            if (GroupSignatureFunctions.checkSignatureWithPK(clientKeys.get(clientID), sp.getSiAph(), sp.getSiDash()) == 0) {
+                return clientID;
             }
         }
 

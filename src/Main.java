@@ -34,6 +34,7 @@ public class Main {
         ServerTwoPartyObject twoPartyObject = t1.getTwoPartyObject();
 
         hems1.agreeTariff(twoPartyObject);
+        t1.addClient(hems1.getUserZK().getClientID(), hems1.getName());
         G1 signKeyRand = t1.agreeTariff(hems1.getUserZK());
         hems1.computeSignKey(signKeyRand);
 

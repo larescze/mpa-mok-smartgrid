@@ -14,7 +14,8 @@ public class Trader extends SecureChannel.EchoServer {
     private String name;
     private int port;
     private GroupManager groupManager;
-    HashMap<UUID, Long> clientsConsumption;
+    HashMap<BigInteger, String> clients;
+    HashMap<BigInteger, Long> clientsConsumption;
 
     private final Thread thread;
 
@@ -23,6 +24,7 @@ public class Trader extends SecureChannel.EchoServer {
         this.name = name;
         this.port = port;
         this.groupManager = new GroupManager();
+        this.clients = new HashMap<>();
         this.clientsConsumption = new HashMap<>();
 
         thread = new Thread(this);
@@ -41,7 +43,9 @@ public class Trader extends SecureChannel.EchoServer {
     protected Object createResponse(Object dataReceived) {
         Object response = null;
 
-        if (dataReceived instanceof String && dataReceived.equals("AgreeTariff")) {
+        if (dataReceived instanceof AgreeTariff) {
+            AgreeTariff agreeTariff = (AgreeTariff) dataReceived;
+            clients.put(agreeTariff.getClientID(), agreeTariff.getName());
             System.out.printf("[%s] Received AgreeTariff\n", name);
             response = getTwoPartyObject();
         } else if (dataReceived instanceof UserZKObject) {
@@ -82,18 +86,22 @@ public class Trader extends SecureChannel.EchoServer {
         return groupManager.getTwoPartyObject();
     }
 
+    public void addClient(BigInteger clientID, String clientName) {
+        clients.put(clientID, clientName);
+    }
+
     public G1 agreeTariff(UserZKObject clientZK) {
         if (!groupManager.checkClientZK(clientZK)) {
             return null;
         }
 
-        groupManager.saveClientKey(clientZK.getClientPubKey());
+        groupManager.saveClientKey(clientZK.getClientID(), clientZK.getClientPubKey());
 
         return groupManager.computeSigningKeyRand(clientZK);
     }
 
-    public void cancelTariff(UUID clientUUID) {
-        groupManager.removeClientKey(clientUUID);
+    public void cancelTariff(BigInteger clientID) {
+        groupManager.removeClientKey(clientID);
     }
 
     public boolean checkSignature(SignatureProof sp, String m) {
@@ -106,13 +114,13 @@ public class Trader extends SecureChannel.EchoServer {
     public void showClientsConsumption() {
         System.out.printf("[%s] clients:\n", name);
 
-        for (UUID clientUUID : clientsConsumption.keySet()) {
-            System.out.println(clientUUID + ": " + clientsConsumption.get(clientUUID));
+        for (BigInteger clientID : clientsConsumption.keySet()) {
+            System.out.println(clients.get(clientID) + ": " + clientsConsumption.get(clientID) + " kWh");
         }
     }
 
-    public long getClientConsumption(UUID clientUUID) {
-        return clientsConsumption.get(clientUUID);
+    public long getClientConsumption(BigInteger clientID) {
+        return clientsConsumption.get(clientID);
     }
 
     public boolean saveClientConsumption(SignatureProof sp, long consumption) {
@@ -124,8 +132,8 @@ public class Trader extends SecureChannel.EchoServer {
             return false;
         }
 
-        UUID clientUUID = groupManager.getClientUUID(sp);
-        clientsConsumption.put(clientUUID, consumption);
+        BigInteger clientID = groupManager.getClientID(sp);
+        clientsConsumption.put(clientID, consumption);
 
         return true;
     }

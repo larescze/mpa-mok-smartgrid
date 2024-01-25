@@ -38,6 +38,10 @@ public class Client {
         return n;
     }
 
+    public BigInteger getClientID() {
+        return clientID;
+    }
+
     public BigInteger getGroupID() {
         return groupID;
     }
