@@ -19,11 +19,11 @@ public class PoC {
     public static void main(String[] args) throws Exception {
         Mcl.SystemInit(Mcl.BN254);
 
-        Trader t1 = new Trader("E.ON", 100);
-        Trader t2 = new Trader("FONERGY", 101);
-        SmartGrid sg1 = new SmartGrid("EG.D", 200);
-        SmartGrid sg2 = new SmartGrid("ČEZ Distribuce", 201);
-        SmartGrid sg3 = new SmartGrid("PREdistribuce", 202);
+        Trader t1 = new Trader("E.ON", 10000);
+        Trader t2 = new Trader("FONERGY", 10001);
+        SmartGrid sg1 = new SmartGrid("EG.D", 20000);
+        SmartGrid sg2 = new SmartGrid("ČEZ Distribuce", 20001);
+        SmartGrid sg3 = new SmartGrid("PREdistribuce", 20002);
 
         sg1.addTrader(t1.getPublicKey(), t1.getPort());
         sg1.addTrader(t2.getPublicKey(), t2.getPort());
